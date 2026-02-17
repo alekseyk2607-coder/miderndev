@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Каталог нейросетей — Midern Dev</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-primary: #f5f5f7; --bg-secondary: rgba(255,255,255,0.85); --text-primary: #1d1d1f;
+            --text-secondary: #86868b; --glass-border: rgba(255,255,255,0.6); --glass-shadow: rgba(0,0,0,0.08);
+            --accent: #0071e3; --accent-hover: #0077ed; --card-bg: rgba(255,255,255,0.95);
+        }
+        [data-theme="dark"] {
+            --bg-primary: #000000; --bg-secondary: rgba(28,28,30,0.85); --text-primary: #ffffff;
+            --text-secondary: #98989d; --glass-border: rgba(255,255,255,0.15); --glass-shadow: rgba(0,0,0,0.4);
+            --accent: #0a84ff; --accent-hover: #409cff; --card-bg: rgba(28,28,30,0.95);
+        }
+        html, body {
+            min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary); color: var(--text-primary); transition: background 0.5s ease, color 0.5s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: var(--bg-secondary);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
+        .logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), #5856d6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            letter-spacing: -0.5px; text-decoration: none; }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-link { background: transparent; border: none; color: var(--text-secondary); padding: 6px 12px;
+            border-radius: 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-decoration: none; }
+        .nav-link:hover { color: var(--accent); background: rgba(0,113,227,0.08); }
+        .nav-link.active { color: var(--accent); font-weight: 600; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .theme-toggle { width: 44px; height: 26px; background: var(--bg-secondary); border: 1px solid var(--glass-border);
+            border-radius: 13px; position: relative; cursor: pointer; transition: all 0.3s ease; }
+        .theme-toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: var(--text-primary);
+            border-radius: 50%; top: 2px; left: 3px; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+        [data-theme="dark"] .theme-toggle::after { transform: translateX(18px); }
+        .hamburger { display: none; background: transparent; border: 1px solid var(--glass-border); color: var(--text-primary);
+            width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; align-items: center;
+            justify-content: center; transition: all 0.3s ease; }
+        .hamburger:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .mobile-menu { display: none; position: fixed; top: 50px; left: 0; right: 0; background: var(--bg-secondary);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 12px 20px; z-index: 999;
+            flex-direction: column; gap: 4px; transform: translateY(-100%); opacity: 0; transition: all 0.3s ease; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; }
+        .mobile-menu .nav-link { display: block; padding: 10px 14px; font-size: 15px; border-radius: 12px; }
+        @media (max-width: 768px) { .nav-links { display: none; } .hamburger { display: flex; } .mobile-menu { display: flex; } }
+
+        .page-container { max-width: 1100px; margin: 0 auto; padding: 80px 20px 60px; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: clamp(28px, 6vw, 42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-header p { font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 32px; }
+        .filter-btn { background: var(--bg-secondary); border: 1px solid var(--glass-border); color: var(--text-secondary);
+            padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.3s ease; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .search-box { max-width: 500px; margin: 0 auto 32px; position: relative; }
+        .search-box input { width: 100%; padding: 14px 20px 14px 44px; border: 1px solid var(--glass-border);
+            border-radius: 16px; background: var(--bg-secondary); color: var(--text-primary); font-size: 15px;
+            backdrop-filter: blur(10px); transition: all 0.3s ease; }
+        .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
+        .search-box::before { content: '🔍'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .catalog-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 24px; transition: all 0.3s ease; cursor: default; }
+        .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px var(--glass-shadow); }
+        .catalog-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+        .catalog-card-logo { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center;
+            justify-content: center; font-size: 22px; font-weight: 700; flex-shrink: 0; }
+        .catalog-card-info h3 { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+        .catalog-card-info .cat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .catalog-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+        .catalog-card-tip { background: rgba(0,113,227,0.06); border-radius: 12px; padding: 12px 14px;
+            font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; }
+        .catalog-card-tip strong { color: var(--accent); }
+        .catalog-card-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent);
+            text-decoration: none; font-size: 14px; font-weight: 500; transition: gap 0.3s ease; }
+        .catalog-card-link:hover { gap: 10px; }
+        .no-results { text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 16px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; opacity: 0.3; }
+
+        @media (max-width: 768px) {
+            .catalog-grid { grid-template-columns: 1fr; }
+            .page-container { padding: 70px 15px 40px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="logo">Midern Dev</a>
+        <div class="nav-links">
+            <a href="./miderndev/index.html" class="nav-link">Главная</a>
+            <a href="./miderndev/catalog/index.html" class="nav-link active">Каталог</a>
+            <a href="./miderndev/compare/index.html" class="nav-link">Сравнение</a>
+            <a href="./miderndev/learn/index.html" class="nav-link">Обучение</a>
+            <a href="./miderndev/blog/index.html" class="nav-link">Блог</a>
+        </div>
+        <div class="nav-right">
+            <button class="hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">☰</button>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="./miderndev/index.html" class="nav-link">Главная</a>
+        <a href="./miderndev/catalog/index.html" class="nav-link active">Каталог</a>
+        <a href="./miderndev/compare/index.html" class="nav-link">Сравнение</a>
+        <a href="./miderndev/learn/index.html" class="nav-link">Обучение</a>
+        <a href="./miderndev/blog/index.html" class="nav-link">Блог</a>
+    </div>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Каталог нейросетей</h1>
+            <p>Полный справочник ИИ-инструментов с описанием, советами и ссылками</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Поиск по названию или описанию..." oninput="filterCards()">
+        </div>
+
+        <div class="filter-bar" id="filterBar">
+            <button class="filter-btn active" onclick="setFilter('all', this)">Все</button>
+            <button class="filter-btn" onclick="setFilter('Текст', this)">Текст</button>
+            <button class="filter-btn" onclick="setFilter('Код', this)">Код</button>
+            <button class="filter-btn" onclick="setFilter('Мультимодал', this)">Мультимодал</button>
+            <button class="filter-btn" onclick="setFilter('Изображения', this)">Изображения</button>
+            <button class="filter-btn" onclick="setFilter('Видео', this)">Видео</button>
+            <button class="filter-btn" onclick="setFilter('Музыка', this)">Музыка</button>
+            <button class="filter-btn" onclick="setFilter('Аудио', this)">Аудио</button>
+            <button class="filter-btn" onclick="setFilter('Поиск', this)">Поиск</button>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid"></div>
+        <div class="no-results" id="noResults" style="display:none;">Ничего не найдено. Попробуйте другой запрос.</div>
+    </div>
+
+    <script>
+        const networks = [
+            { name: "ChatGPT", category: "Текст", description: "Универсальный ИИ-ассистент от OpenAI для диалогов, кода и анализа данных. Поддерживает плагины, работу с файлами и генерацию изображений через DALL-E.", instruction: "Задавай чёткие вопросы, используй уточнения. Для кода указывай язык и версию. Используй system-промпт для задания роли.", website: "https://chat.openai.com", color: "#10a37f" },
+            { name: "Gemini", category: "Мультимодал", description: "Google-ассистент с интеграцией в экосистему Google и огромным контекстным окном. Работает с текстом, изображениями и кодом одновременно.", instruction: "Используй нативные интеграции (Docs, Gmail). Пробуй мультимодальные запросы — загружай изображения вместе с текстом.", website: "https://gemini.google.com", color: "#4285f4" },
+            { name: "Grok", category: "Текст", description: "ИИ от xAI с доступом к данным X (Twitter) в реальном времени. Отличается более свободным стилем общения.", instruction: "Задавай вопросы о трендах и новостях. Используй актуальные данные из X для анализа общественного мнения.", website: "https://grok.x.ai", color: "#1d9bf0" },
+            { name: "Claude", category: "Текст", description: "ИИ-ассистент от Anthropic с контекстом до 200K токенов. Фокус на безопасности и точности. Отлично работает с длинными документами.", instruction: "Отлично подходит для анализа длинных документов, исследований и творческих задач. Загружай PDF целиком для анализа.", website: "https://claude.ai", color: "#d97757" },
+            { name: "Kimi", category: "Текст", description: "Китайский ассистент с контекстом 200K+ токенов от Moonshot AI. Может обрабатывать целые книги за один запрос.", instruction: "Загружай целые документы для анализа. Идеален для длинных текстов и обобщения больших объёмов информации.", website: "https://kimi.moonshot.cn", color: "#00b4d8" },
+            { name: "DeepSeek", category: "Текст / Код", description: "Открытая модель с сильными навыками программирования и математических рассуждений. Конкурирует с GPT-4 при меньших затратах.", instruction: "Идеален для сложных кодовых задач, математических доказательств и алгоритмических задач. Используй chain-of-thought.", website: "https://www.deepseek.com", color: "#4f46e5" },
+            { name: "Qwen", category: "Текст / Код", description: "Alibaba-ассистент с мощной мультиязычной поддержкой. Хорош в коде и бизнес-аналитике.", instruction: "Пробуй мультиязычные запросы. Хорош для бизнес-аналитики и работы с азиатскими языками.", website: "https://qwenlm.github.io", color: "#7c3aed" },
+            { name: "GigaChat", category: "Текст", description: "Российский ассистент Сбера с интеграцией в экосистему Сбера и локальные сервисы. Понимает русский язык на высоком уровне.", instruction: "Используй для работы с российскими документами и рутинными задачами. Хорош для генерации текста на русском.", website: "https://giga.chat", color: "#1a73e8" },
+            { name: "Midjourney", category: "Изображения", description: "Лучший генератор художественных изображений по текстовому описанию. Создаёт фотореалистичные и стилизованные изображения.", instruction: "Используй художественные термины, стили, художников для референса. Добавляй --ar для пропорций, --v для версии.", website: "https://www.midjourney.com", color: "#1a1a1a" },
+            { name: "Stable Diffusion", category: "Изображения", description: "Открытая модель для генерации изображений с полным контролем. Можно запускать локально и тонко настраивать.", instruction: "Используй промпты с тегами, негативные промпты, настраивай CFG Scale и шаги сэмплирования.", website: "https://stability.ai", color: "#fbbf24" },
+            { name: "Sora", category: "Видео", description: "OpenAI-модель для генерации видео из текста. Создаёт реалистичные видеоролики длительностью до минуты.", instruction: "Опиши сцену детально: движение камеры, освещение, стиль, длительность. Будь конкретен в описании действий.", website: "https://openai.com/sora", color: "#10a37f" },
+            { name: "Runway", category: "Видео", description: "Платформа для генерации и редактирования видео с ИИ. Gen-2 модель для text-to-video и image-to-video.", instruction: "Используй для генерации коротких видео, удаления фона, замены объектов и цветокоррекции.", website: "https://runwayml.com", color: "#6366f1" },
+            { name: "Suno", category: "Музыка", description: "Генератор полноценных музыкальных композиций с вокалом из текстового описания. Поддерживает любые жанры.", instruction: "Укажи жанр, темп (BPM), настроение, структуру песни. Можешь написать текст песни или дать описание.", website: "https://suno.ai", color: "#ec4899" },
+            { name: "ElevenLabs", category: "Аудио", description: "Генератор реалистичных голосов и озвучки. Лидер по качеству text-to-speech с клонированием голоса.", instruction: "Выбери голос, настрой стабильность и ясность. Используй для озвучки видео, подкастов и аудиокниг.", website: "https://elevenlabs.io", color: "#6366f1" },
+            { name: "Perplexity", category: "Поиск", description: "ИИ-поисковик с доступом к интернету и ссылками на источники. Даёт структурированные ответы вместо списка ссылок.", instruction: "Задавай вопросы как в Google, но получай структурированные ответы с источниками. Используй Focus для точности.", website: "https://www.perplexity.ai", color: "#22d3ee" }
+        ];
+
+        let currentFilter = 'all';
+
+        function renderCards(filtered) {
+            const grid = document.getElementById('catalogGrid');
+            const noResults = document.getElementById('noResults');
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                noResults.style.display = 'block';
+                return;
+            }
+            noResults.style.display = 'none';
+            grid.innerHTML = filtered.map(n => `
+                <div class="catalog-card" data-category="${n.category}">
+                    <div class="catalog-card-header">
+                        <div class="catalog-card-logo" style="background: linear-gradient(135deg, ${n.color}20, ${n.color}40); border: 2px solid ${n.color}60; color: ${n.color};">
+                            ${n.name.charAt(0)}
+                        </div>
+                        <div class="catalog-card-info">
+                            <h3>${n.name}</h3>
+                            <span class="cat-label">${n.category}</span>
+                        </div>
+                    </div>
+                    <p>${n.description}</p>
+                    <div class="catalog-card-tip"><strong>Совет:</strong> ${n.instruction}</div>
+                    <a href="${n.website}" target="_blank" class="catalog-card-link">Перейти на сайт →</a>
+                </div>
+            `).join('');
+        }
+
+        function setFilter(category, btn) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterCards();
+        }
+
+        function filterCards() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = networks;
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(n => n.category.includes(currentFilter));
+            }
+            if (query) {
+                filtered = filtered.filter(n =>
+                    n.name.toLowerCase().includes(query) ||
+                    n.description.toLowerCase().includes(query) ||
+                    n.category.toLowerCase().includes(query)
+                );
+            }
+            renderCards(filtered);
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('midern_theme', newTheme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('midern_theme');
+            if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        loadTheme();
+        renderCards(networks);
+    </script>
+</body>
+</html>

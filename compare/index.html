@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Сравнение нейросетей — Midern Dev</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-primary: #f5f5f7; --bg-secondary: rgba(255,255,255,0.85); --text-primary: #1d1d1f;
+            --text-secondary: #86868b; --glass-border: rgba(255,255,255,0.6); --glass-shadow: rgba(0,0,0,0.08);
+            --accent: #0071e3; --accent-hover: #0077ed; --card-bg: rgba(255,255,255,0.95);
+            --success: #34c759; --error: #ff3b30;
+        }
+        [data-theme="dark"] {
+            --bg-primary: #000000; --bg-secondary: rgba(28,28,30,0.85); --text-primary: #ffffff;
+            --text-secondary: #98989d; --glass-border: rgba(255,255,255,0.15); --glass-shadow: rgba(0,0,0,0.4);
+            --accent: #0a84ff; --accent-hover: #409cff; --card-bg: rgba(28,28,30,0.95);
+            --success: #30d158; --error: #ff453a;
+        }
+        html, body {
+            min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary); color: var(--text-primary); transition: background 0.5s ease, color 0.5s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+        .nav { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: var(--bg-secondary);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
+        .logo { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent), #5856d6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            letter-spacing: -0.5px; text-decoration: none; }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-link { background: transparent; border: none; color: var(--text-secondary); padding: 6px 12px;
+            border-radius: 16px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; text-decoration: none; }
+        .nav-link:hover { color: var(--accent); background: rgba(0,113,227,0.08); }
+        .nav-link.active { color: var(--accent); font-weight: 600; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .theme-toggle { width: 44px; height: 26px; background: var(--bg-secondary); border: 1px solid var(--glass-border);
+            border-radius: 13px; position: relative; cursor: pointer; transition: all 0.3s ease; }
+        .theme-toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: var(--text-primary);
+            border-radius: 50%; top: 2px; left: 3px; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+        [data-theme="dark"] .theme-toggle::after { transform: translateX(18px); }
+        .hamburger { display: none; background: transparent; border: 1px solid var(--glass-border); color: var(--text-primary);
+            width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; align-items: center;
+            justify-content: center; transition: all 0.3s ease; }
+        .hamburger:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .mobile-menu { display: none; position: fixed; top: 50px; left: 0; right: 0; background: var(--bg-secondary);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 12px 20px; z-index: 999;
+            flex-direction: column; gap: 4px; transform: translateY(-100%); opacity: 0; transition: all 0.3s ease; }
+        .mobile-menu.open { transform: translateY(0); opacity: 1; }
+        .mobile-menu .nav-link { display: block; padding: 10px 14px; font-size: 15px; border-radius: 12px; }
+        @media (max-width: 768px) { .nav-links { display: none; } .hamburger { display: flex; } .mobile-menu { display: flex; } }
+
+        .page-container { max-width: 1100px; margin: 0 auto; padding: 80px 20px 60px; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .page-header h1 { font-size: clamp(28px, 6vw, 42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-header p { font-size: 16px; color: var(--text-secondary); max-width: 550px; margin: 0 auto; }
+
+        .selector-section { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+        .selector-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 2px solid var(--glass-border);
+            border-radius: 20px; padding: 20px; width: 260px; text-align: center; transition: all 0.3s ease; }
+        .selector-card h4 { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+        .selector-card select { width: 100%; padding: 12px 16px; border: 1px solid var(--glass-border); border-radius: 12px;
+            background: var(--bg-secondary); color: var(--text-primary); font-size: 15px; font-weight: 500;
+            cursor: pointer; -webkit-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2386868b' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 14px center; }
+        .selector-card select:focus { outline: none; border-color: var(--accent); }
+        .selector-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
+
+        .compare-btn { display: block; margin: 0 auto 40px; background: var(--accent); color: white; border: none;
+            padding: 14px 40px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; }
+        .compare-btn:hover { background: var(--accent-hover); transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,113,227,0.3); }
+        .compare-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .compare-table-wrap { overflow-x: auto; border-radius: 20px; border: 1px solid var(--glass-border);
+            background: var(--card-bg); backdrop-filter: blur(20px); display: none; }
+        .compare-table-wrap.visible { display: block; }
+        .compare-table { width: 100%; border-collapse: collapse; }
+        .compare-table th { padding: 16px 20px; text-align: left; font-size: 14px; font-weight: 600;
+            background: var(--bg-secondary); border-bottom: 1px solid var(--glass-border); color: var(--text-secondary); }
+        .compare-table th:first-child { width: 180px; }
+        .compare-table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--glass-border);
+            vertical-align: top; line-height: 1.5; }
+        .compare-table tr:last-child td { border-bottom: none; }
+        .compare-table .row-label { font-weight: 600; color: var(--text-primary); background: var(--bg-secondary); }
+        .compare-table .check { color: var(--success); font-weight: 600; }
+        .compare-table .cross { color: var(--error); font-weight: 600; }
+        .compare-table .highlight { color: var(--accent); font-weight: 600; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .empty-state p { font-size: 16px; margin-bottom: 8px; }
+        .empty-state span { font-size: 13px; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; opacity: 0.3; }
+
+        @media (max-width: 768px) {
+            .page-container { padding: 70px 15px 40px; }
+            .selector-card { width: 100%; }
+            .compare-table th, .compare-table td { padding: 10px 12px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="logo">Midern Dev</a>
+        <div class="nav-links">
+            <a href="./miderndev/index.html" class="nav-link">Главная</a>
+            <a href="./miderndev/catalog/index.html" class="nav-link">Каталог</a>
+            <a href="./miderndev/compare/index.html" class="nav-link active">Сравнение</a>
+            <a href="./miderndev/learn/index.html" class="nav-link">Обучение</a>
+            <a href="./miderndev/blog/index.html" class="nav-link">Блог</a>
+        </div>
+        <div class="nav-right">
+            <button class="hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">☰</button>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="./miderndev/index.html" class="nav-link">Главная</a>
+        <a href="./miderndev/catalog/index.html" class="nav-link active">Каталог</a>
+        <a href="./miderndev/compare/index.html" class="nav-link">Сравнение</a>
+        <a href="./miderndev/learn/index.html" class="nav-link">Обучение</a>
+        <a href="./miderndev/blog/index.html" class="nav-link">Блог</a>
+    </div>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Сравнение нейросетей</h1>
+            <p>Выберите две нейросети для детального сравнения характеристик, возможностей и стоимости</p>
+        </div>
+
+        <div class="selector-section">
+            <div class="selector-card" id="selectorA">
+                <h4>Первая нейросеть</h4>
+                <select id="selectA" onchange="updateSelectors()">
+                    <option value="">Выберите...</option>
+                </select>
+            </div>
+            <div class="selector-card" id="selectorB">
+                <h4>Вторая нейросеть</h4>
+                <select id="selectB" onchange="updateSelectors()">
+                    <option value="">Выберите...</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="compare-btn" id="compareBtn" onclick="compare()" disabled>Сравнить</button>
+
+        <div class="compare-table-wrap" id="compareResult">
+            <table class="compare-table" id="compareTable"></table>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <p>Выберите две нейросети для сравнения</p>
+            <span>Сравнивайте возможности, стоимость, контекст и лучшие сценарии использования</span>
+        </div>
+    </div>
+
+    <script>
+        const networks = {
+            "ChatGPT": {
+                category: "Текст / Мультимодал", company: "OpenAI", color: "#10a37f",
+                context: "128K токенов", pricing: "Бесплатно / $20/мес (Plus) / $200/мес (Pro)",
+                strengths: "Универсальность, плагины, DALL-E, Code Interpreter, GPTs",
+                weaknesses: "Цена Pro, иногда галлюцинирует, ограничения бесплатной версии",
+                languages: "100+ языков", api: "Да (платное)", offline: "Нет",
+                bestFor: "Универсальные задачи, код, анализ данных, генерация контента",
+                speed: "Быстрый", opensource: "Нет"
+            },
+            "Gemini": {
+                category: "Мультимодал", company: "Google", color: "#4285f4",
+                context: "1M+ токенов (Ultra)", pricing: "Бесплатно / $20/мес (Advanced)",
+                strengths: "Огромный контекст, интеграция Google, мультимодальность",
+                weaknesses: "Менее точный в коде, ограниченная доступность в некоторых регионах",
+                languages: "40+ языков", api: "Да (платное)", offline: "Нет",
+                bestFor: "Работа с Google-сервисами, длинные документы, мультимодальные задачи",
+                speed: "Быстрый", opensource: "Частично (Gemma)"
+            },
+            "Grok": {
+                category: "Текст", company: "xAI", color: "#1d9bf0",
+                context: "128K токенов", pricing: "X Premium ($8/мес) / SuperGrok ($30/мес)",
+                strengths: "Доступ к данным X в реальном времени, юмор, откровенность",
+                weaknesses: "Привязан к X, менее точный в сложных задачах",
+                languages: "20+ языков", api: "Да (платное)", offline: "Нет",
+                bestFor: "Анализ трендов, новости, социальные медиа",
+                speed: "Быстрый", opensource: "Да (Grok-1)"
+            },
+            "Claude": {
+                category: "Текст", company: "Anthropic", color: "#d97757",
+                context: "200K токенов", pricing: "Бесплатно / $20/мес (Pro) / $100/мес (Team)",
+                strengths: "Огромный контекст, безопасность, точность, работа с документами",
+                weaknesses: "Нет генерации изображений, ограничения бесплатной версии",
+                languages: "50+ языков", api: "Да (платное)", offline: "Нет",
+                bestFor: "Длинные документы, исследования, код, анализ данных",
+                speed: "Быстрый", opensource: "Нет"
+            },
+            "DeepSeek": {
+                category: "Текст / Код", company: "DeepSeek", color: "#4f46e5",
+                context: "128K токенов", pricing: "Бесплатно / API очень дешёвое",
+                strengths: "Сильный код, math, открытая модель, низкая цена API",
+                weaknesses: "Менее известен, меньше интеграций, иногда медленнее",
+                languages: "30+ языков", api: "Да (дешёвое)", offline: "Да (локально)",
+                bestFor: "Программирование, математика, научные задачи",
+                speed: "Средний", opensource: "Да"
+            },
+            "Midjourney": {
+                category: "Изображения", company: "Midjourney", color: "#1a1a1a",
+                context: "Промпт до 6000 символов", pricing: "$10-60/мес",
+                strengths: "Лучшее качество арта, стили, фотореализм",
+                weaknesses: "Только через Discord/веб, нет API, платное",
+                languages: "Промпты на английском (лучше)", api: "Нет официального", offline: "Нет",
+                bestFor: "Арт, иллюстрации, концепт-арт, фотографии",
+                speed: "30-60 сек", opensource: "Нет"
+            },
+            "Stable Diffusion": {
+                category: "Изображения", company: "Stability AI", color: "#fbbf24",
+                context: "77 токенов (CLIP)", pricing: "Бесплатно (локально) / API платное",
+                strengths: "Открытый код, локальный запуск, LoRA, ControlNet",
+                weaknesses: "Требует мощный GPU, сложнее в настройке",
+                languages: "Промпты на английском", api: "Да", offline: "Да",
+                bestFor: "Кастомизация, массовая генерация, специализированные стили",
+                speed: "5-30 сек (локально)", opensource: "Да"
+            },
+            "Sora": {
+                category: "Видео", company: "OpenAI", color: "#10a37f",
+                context: "Промпт текстовый", pricing: "ChatGPT Plus ($20/мес) / Pro ($200/мес)",
+                strengths: "Высокое качество, реализм, длинные видео до 1 мин",
+                weaknesses: "Медленная генерация, ограниченная доступность, дорого",
+                languages: "Промпты на английском", api: "Нет пока", offline: "Нет",
+                bestFor: "Рекламные ролики, концепт-видео, визуализации",
+                speed: "Минуты", opensource: "Нет"
+            },
+            "Runway": {
+                category: "Видео", company: "Runway AI", color: "#6366f1",
+                context: "Текст / изображение", pricing: "Бесплатно (125 кредитов) / от $12/мес",
+                strengths: "Быстрая генерация, много инструментов, image-to-video",
+                weaknesses: "Короткие видео (4-16 сек), качество уступает Sora",
+                languages: "Английский", api: "Да", offline: "Нет",
+                bestFor: "Быстрые видео-прототипы, редактирование, удаление фона",
+                speed: "30-120 сек", opensource: "Нет"
+            },
+            "Suno": {
+                category: "Музыка", company: "Suno AI", color: "#ec4899",
+                context: "Текстовый промпт + лирика", pricing: "Бесплатно (50 кредитов/день) / от $10/мес",
+                strengths: "Полные песни с вокалом, любые жанры, быстро",
+                weaknesses: "Качество вокала варьируется, не всегда предсказуемо",
+                languages: "Мультиязычный", api: "Нет официального", offline: "Нет",
+                bestFor: "Создание музыки, песен, джинглов, саундтреков",
+                speed: "30-60 сек", opensource: "Нет"
+            },
+            "ElevenLabs": {
+                category: "Аудио / TTS", company: "ElevenLabs", color: "#6366f1",
+                context: "Текст до 5000 символов", pricing: "Бесплатно (10K символов/мес) / от $5/мес",
+                strengths: "Лучший TTS, клонирование голоса, многоязычность",
+                weaknesses: "Ограничения бесплатного плана, цена за большие объёмы",
+                languages: "29+ языков", api: "Да", offline: "Нет",
+                bestFor: "Озвучка, подкасты, аудиокниги, голосовые ассистенты",
+                speed: "Мгновенно", opensource: "Нет"
+            },
+            "Perplexity": {
+                category: "Поиск", company: "Perplexity AI", color: "#22d3ee",
+                context: "Зависит от модели", pricing: "Бесплатно / $20/мес (Pro)",
+                strengths: "Актуальная информация, источники, точные ответы",
+                weaknesses: "Не генерирует контент, ограниченная креативность",
+                languages: "Мультиязычный", api: "Да", offline: "Нет",
+                bestFor: "Исследования, факт-чекинг, актуальная информация",
+                speed: "Быстрый", opensource: "Нет"
+            },
+            "Kimi": {
+                category: "Текст", company: "Moonshot AI", color: "#00b4d8",
+                context: "200K+ токенов", pricing: "Бесплатно",
+                strengths: "Огромный контекст, бесплатный, хорош для длинных текстов",
+                weaknesses: "Менее известен, меньше функций, ориентирован на Китай",
+                languages: "Китайский, Английский", api: "Да", offline: "Нет",
+                bestFor: "Анализ длинных документов, книг, отчётов",
+                speed: "Средний", opensource: "Нет"
+            },
+            "Qwen": {
+                category: "Текст / Код", company: "Alibaba", color: "#7c3aed",
+                context: "128K токенов", pricing: "Бесплатно / API дешёвое",
+                strengths: "Мультиязычность, код, открытые модели",
+                weaknesses: "Меньше интеграций, менее известен на западе",
+                languages: "30+ языков (сильный в азиатских)", api: "Да", offline: "Да (локально)",
+                bestFor: "Мультиязычные задачи, код, бизнес-аналитика",
+                speed: "Быстрый", opensource: "Да"
+            },
+            "GigaChat": {
+                category: "Текст", company: "Сбер", color: "#1a73e8",
+                context: "32K токенов", pricing: "Бесплатно / Premium",
+                strengths: "Отличный русский язык, интеграция Сбер, генерация изображений",
+                weaknesses: "Слабее в коде, ограниченный контекст, только Россия",
+                languages: "Русский, Английский", api: "Да", offline: "Нет",
+                bestFor: "Русскоязычные задачи, документы, работа в экосистеме Сбер",
+                speed: "Быстрый", opensource: "Нет"
+            }
+        };
+
+        const labels = {
+            category: "Категория", company: "Компания", context: "Контекстное окно",
+            pricing: "Стоимость", strengths: "Сильные стороны", weaknesses: "Слабые стороны",
+            languages: "Языки", api: "API", offline: "Оффлайн", bestFor: "Лучше всего для",
+            speed: "Скорость", opensource: "Open Source"
+        };
+
+        const names = Object.keys(networks);
+
+        function populateSelects() {
+            ['selectA', 'selectB'].forEach(id => {
+                const sel = document.getElementById(id);
+                names.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function updateSelectors() {
+            const a = document.getElementById('selectA').value;
+            const b = document.getElementById('selectB').value;
+            document.getElementById('selectorA').classList.toggle('selected', !!a);
+            document.getElementById('selectorB').classList.toggle('selected', !!b);
+            document.getElementById('compareBtn').disabled = !a || !b || a === b;
+        }
+
+        function compare() {
+            const a = document.getElementById('selectA').value;
+            const b = document.getElementById('selectB').value;
+            if (!a || !b || a === b) return;
+
+            const netA = networks[a];
+            const netB = networks[b];
+            const table = document.getElementById('compareTable');
+
+            let html = `<thead><tr>
+                <th>Характеристика</th>
+                <th style="color:${netA.color}">${a}</th>
+                <th style="color:${netB.color}">${b}</th>
+            </tr></thead><tbody>`;
+
+            Object.keys(labels).forEach(key => {
+                html += `<tr>
+                    <td class="row-label">${labels[key]}</td>
+                    <td>${formatCell(netA[key])}</td>
+                    <td>${formatCell(netB[key])}</td>
+                </tr>`;
+            });
+
+            html += '</tbody>';
+            table.innerHTML = html;
+
+            document.getElementById('compareResult').classList.add('visible');
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('compareResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function formatCell(val) {
+            if (val === 'Да') return '<span class="check">&#10003; Да</span>';
+            if (val === 'Нет') return '<span class="cross">&#10007; Нет</span>';
+            if (val.startsWith('Да (')) return '<span class="check">&#10003; ' + val + '</span>';
+            return val;
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('midern_theme', newTheme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('midern_theme');
+            if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+            else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        loadTheme();
+        populateSelects();
+    </script>
+</body>
+</html>

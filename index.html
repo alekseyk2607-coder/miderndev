@@ -1,0 +1,2985 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Midern Dev — Навигатор по нейросетям</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: rgba(255, 255, 255, 0.85);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: rgba(0, 0, 0, 0.08);
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --premium: #f59e0b;
+            --premium-hover: #fbbf24;
+            --success: #34c759;
+            --error: #ff3b30;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: rgba(28, 28, 30, 0.85);
+            --text-primary: #ffffff;
+            --text-secondary: #98989d;
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: rgba(0, 0, 0, 0.4);
+            --accent: #0a84ff;
+            --accent-hover: #409cff;
+            --card-bg: rgba(28, 28, 30, 0.95);
+            --premium: #fbbf24;
+            --premium-hover: #fcd34d;
+            --success: #30d158;
+            --error: #ff453a;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.5s ease;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            padding: 15px 20px;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .cookie-banner.show {
+            transform: translateY(0);
+        }
+
+        .cookie-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        .cookie-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .cookie-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .cookie-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #5856d6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+            background: rgba(0, 113, 227, 0.08);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Стили для кнопки "Помочь" */
+        .help-btn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(249, 115, 22, 0.1));
+            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--premium);
+        }
+
+        .help-btn:hover {
+            background: linear-gradient(135deg, var(--premium), #f97316);
+            color: white;
+            border-color: var(--premium);
+        }
+
+        .hamburger {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            z-index: 999;
+            flex-direction: column;
+            gap: 4px;
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu.open {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .mobile-menu .nav-link {
+            display: block;
+            padding: 10px 14px;
+            font-size: 15px;
+            border-radius: 12px;
+        }
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--premium), #f97316);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+
+        .premium-badge.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        }
+
+        .premium-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle {
+            width: 44px;
+            height: 26px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            top: 2px;
+            left: 3px;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        [data-theme="dark"] .theme-toggle::after {
+            transform: translateX(18px);
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 15px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 8vw, 48px);
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: clamp(14px, 4vw, 16px);
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .carousel-container {
+            width: 100%;
+            max-width: 1000px;
+            height: clamp(300px, 55vh, 450px);
+            position: relative;
+            perspective: 1000px;
+            -webkit-perspective: 1000px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 0;
+            touch-action: pan-y;
+        }
+
+        .carousel {
+            width: 200px;
+            height: 260px;
+            position: relative;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+        }
+
+        .card-wrapper {
+            position: absolute;
+            width: 180px;
+            height: 240px;
+            left: 50%;
+            top: 50%;
+            margin-left: -100px;
+            margin-top: -130px;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            -webkit-transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            -webkit-transition: -webkit-transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .card-wrapper.flipped .card-inner {
+            transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: translateZ(1px);
+            -webkit-transform: translateZ(1px);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -12px var(--glass-shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        .card-front {
+            z-index: 2;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg);
+            overflow-y: auto;
+            background: var(--card-bg);
+        }
+
+        .card-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .card-logo-text {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .card h3 {
+            font-size: clamp(16px, 4vw, 20px);
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .card-category {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            background: rgba(0, 113, 227, 0.1);
+            border-radius: 12px;
+        }
+
+        .card-description {
+            font-size: clamp(11px, 3vw, 13px);
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.5;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-instruction {
+            font-size: 12px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .card-instruction h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .card-instruction p {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: auto;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .card-link:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 113, 227, 0.3);
+        }
+
+        .flip-hint {
+            margin-top: auto;
+            padding-top: 10px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+            margin: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px var(--glass-shadow);
+            -webkit-appearance: none;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            background: var(--accent);
+            color: white;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .midern-btn {
+            position: fixed;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent), #5856d6);
+            border-radius: 50%;
+            bottom: 20px;
+            right: 20px;
+            cursor: grab;
+            box-shadow: 0 8px 25px rgba(0, 113, 227, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            border: 2px solid rgba(255,255,255,0.2);
+            touch-action: none;
+            will-change: transform;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        .midern-btn:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .midern-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0, 113, 227, 0.5);
+        }
+
+        .midern-btn span {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .midern-modal {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: min(350px, 90vw);
+            max-height: min(500px, 70vh);
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px var(--glass-shadow);
+            padding: 0;
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .midern-modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .modal-header .badge {
+            background: var(--accent);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .close-modal:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-content {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .limit-info {
+            background: rgba(0, 113, 227, 0.1);
+            border: 1px solid rgba(0, 113, 227, 0.2);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .limit-info.premium {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .limit-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .limit-text strong {
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .limit-count {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .limit-info.premium .limit-count {
+            color: var(--premium);
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-messages {
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 14px;
+            max-width: 85%;
+            font-size: 13px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: var(--accent);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            align-self: center;
+            text-align: center;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+        }
+
+        .chat-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-send {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            -webkit-appearance: none;
+        }
+
+        .chat-send:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: scale(1.1);
+        }
+
+        .chat-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(249, 115, 22, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .upgrade-banner h4 {
+            color: var(--premium);
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .upgrade-banner p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, var(--premium), #f97316);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .promo-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .promo-input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .promo-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            -webkit-appearance: none;
+        }
+
+        .promo-input:focus {
+            border-color: var(--premium);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+        .promo-btn {
+            padding: 10px 16px;
+            background: var(--premium);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .promo-btn:hover {
+            background: var(--premium-hover);
+            transform: scale(1.05);
+        }
+
+        .promo-status {
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .promo-status.success {
+            color: var(--success);
+        }
+
+        .promo-status.error {
+            color: var(--error);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-modal {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 420px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 30px 80px var(--glass-shadow);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .popup-overlay.active .popup-modal {
+            transform: scale(1);
+        }
+
+        .popup-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--premium), #f97316);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+        }
+
+        .popup-modal h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .popup-modal p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .popup-email {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+
+        .popup-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .popup-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .popup-close:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .admin-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            z-index: 100;
+            -webkit-appearance: none;
+        }
+
+        .admin-btn:hover {
+            opacity: 1;
+            background: var(--accent);
+            color: white;
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            width: min(90%, 520px);
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 2500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .admin-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .admin-panel h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 20px;
+        }
+
+        .admin-section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .admin-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .admin-section h4 {
+            font-size: 15px;
+            margin-bottom: 14px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .code-list {
+            max-height: 180px;
+            overflow-y: auto;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 13px;
+            gap: 10px;
+        }
+
+        .code-item:last-child {
+            border-bottom: none;
+        }
+
+        .code-text {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .code-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+        }
+
+        .code-btn.copy {
+            background: var(--accent);
+            color: white;
+        }
+
+        .code-btn.delete {
+            background: rgba(255, 59, 48, 0.2);
+            color: var(--error);
+        }
+
+        .code-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 12px;
+            -webkit-appearance: none;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .admin-btn-action {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        .admin-btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .admin-btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .admin-btn-danger {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+
+        .admin-btn-action:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .drag-hint {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 997;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .drag-hint.show {
+            opacity: 1;
+        }
+
+        .privacy-content {
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .privacy-content h4 {
+            color: var(--text-primary);
+            margin: 16px 0 8px 0;
+            font-size: 15px;
+        }
+
+        .privacy-content h4:first-child {
+            margin-top: 0;
+        }
+
+        .privacy-content p {
+            margin-bottom: 12px;
+        }
+
+        .privacy-content ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .privacy-content li {
+            margin-bottom: 6px;
+        }
+
+        .privacy-content strong {
+            color: var(--text-primary);
+        }
+
+        .privacy-content .highlight {
+            background: rgba(0, 113, 227, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 3px;
+            opacity: 0.3;
+        }
+
+        /* ============================================
+           MOBILE OPTIMIZATIONS - ПЕРЕБИВКА ПЛОХОЙ АДАПТАЦИИ
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: flex;
+            }
+
+            .hero {
+                padding-top: 60px;
+                min-height: -webkit-fill-available;
+            }
+            
+            .carousel-container {
+                height: clamp(280px, 50vh, 400px);
+                touch-action: pan-y pinch-zoom;
+            }
+            
+            .carousel {
+                width: 180px;
+                height: 240px;
+            }
+            
+            .card-wrapper {
+                width: 160px;
+                height: 220px;
+                margin-left: -80px;
+                margin-top: -110px;
+            }
+            
+            .card-logo {
+                width: 50px;
+                height: 50px;
+                margin: 5px 0 10px;
+            }
+            
+            .card-logo-text {
+                font-size: 24px;
+            }
+            
+            .card h3 {
+                font-size: 15px;
+            }
+            
+            .card-category {
+                font-size: 9px;
+                padding: 3px 8px;
+            }
+            
+            .card-description {
+                font-size: 11px;
+                line-height: 1.4;
+            }
+            
+            .card-instruction {
+                font-size: 11px;
+            }
+            
+            .card-instruction h4 {
+                font-size: 13px;
+            }
+            
+            .card-link {
+                padding: 8px 14px;
+                font-size: 11px;
+            }
+            
+            .flip-hint {
+                font-size: 9px;
+                padding-top: 8px;
+            }
+
+            .nav {
+                padding: 0 12px;
+            }
+            
+            .logo {
+                font-size: 18px;
+            }
+            
+            .nav-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .help-btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            
+            .premium-badge {
+                padding: 4px 10px;
+                font-size: 10px;
+            }
+            
+            .carousel-controls {
+                gap: 15px;
+                margin: 15px 0;
+            }
+            
+            .control-btn {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
+            }
+
+            .midern-modal {
+                right: 10px;
+                left: 10px;
+                width: auto;
+                bottom: 80px;
+                max-height: 65vh;
+                border-radius: 20px;
+            }
+            
+            .modal-header {
+                padding: 12px 16px;
+            }
+            
+            .modal-header h3 {
+                font-size: 15px;
+            }
+            
+            .modal-content {
+                padding: 12px 16px;
+            }
+            
+            .chat-messages {
+                min-height: 100px;
+                max-height: 150px;
+            }
+            
+            .message {
+                padding: 8px 12px;
+                font-size: 12px;
+                max-width: 90%;
+            }
+            
+            .chat-input {
+                padding: 10px 14px;
+                font-size: 16px;
+            }
+            
+            .chat-send {
+                width: 44px;
+                height: 44px;
+            }
+
+            .cookie-banner {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px;
+                gap: 10px;
+            }
+            
+            .cookie-text {
+                font-size: 12px;
+                max-width: 100%;
+            }
+            
+            .cookie-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .popup-modal {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .popup-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 28px;
+            }
+            
+            .popup-modal h3 {
+                font-size: 20px;
+            }
+            
+            .popup-email {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .admin-panel {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .admin-section h4 {
+                font-size: 14px;
+            }
+            
+            .code-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .code-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .privacy-content {
+                font-size: 12px;
+                max-height: 50vh;
+            }
+            
+            .privacy-content h4 {
+                font-size: 14px;
+            }
+
+            .hero h1 {
+                font-size: clamp(26px, 7vw, 36px);
+                letter-spacing: -0.5px;
+            }
+            
+            .hero p {
+                font-size: clamp(13px, 3.5vw, 15px);
+            }
+            
+            .card-face {
+                padding: 15px;
+                border-radius: 16px;
+            }
+            
+            .nav-btn, .premium-badge, .theme-toggle, 
+            .control-btn, .chat-send, .promo-btn,
+            .popup-btn, .upgrade-btn, .cookie-btn,
+            .code-btn, .admin-btn-action {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .chat-input-container, .promo-input-container {
+                gap: 10px;
+            }
+            
+            .promo-input {
+                font-size: 16px;
+            }
+
+            .midern-btn {
+                width: 60px;
+                height: 60px;
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .midern-btn span {
+                font-size: 26px;
+            }
+            
+            .drag-hint {
+                bottom: 80px;
+                right: 15px;
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .carousel-container {
+                height: 260px;
+            }
+            
+            .carousel {
+                width: 160px;
+                height: 220px;
+            }
+            
+            .card-wrapper {
+                width: 140px;
+                height: 200px;
+                margin-left: -70px;
+                margin-top: -100px;
+            }
+            
+            .card-logo {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .card-logo-text {
+                font-size: 20px;
+            }
+            
+            .card h3 {
+                font-size: 14px;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .hero p {
+                font-size: 13px;
+            }
+            
+            .control-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .help-btn {
+                display: none;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .carousel-container {
+                height: clamp(350px, 60vh, 500px);
+            }
+            
+            .carousel {
+                width: 240px;
+                height: 320px;
+            }
+            
+            .card-wrapper {
+                width: 220px;
+                height: 300px;
+                margin-left: -110px;
+                margin-top: -150px;
+            }
+            
+            .midern-modal {
+                width: 380px;
+                max-height: 70vh;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .midern-btn:hover {
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(0, 113, 227, 0.4);
+            }
+            
+            .midern-btn:active {
+                transform: scale(0.92);
+                box-shadow: 0 4px 15px rgba(0, 113, 227, 0.3);
+            }
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            input, textarea, select {
+                font-size: 16px;
+            }
+            
+            .hero {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        @supports (height: 100dvh) {
+            html, body {
+                height: 100dvh;
+            }
+            
+            .hero {
+                height: 100dvh;
+            }
+        }
+
+        .modal-content, .chat-messages, .privacy-content, .code-list {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        a, button, .control-btn, .card-wrapper, .midern-btn {
+            touch-action: manipulation;
+        }
+
+        [data-theme="dark"] .card-face {
+            background: rgba(28, 28, 30, 0.98);
+        }
+
+        @media print {
+            .midern-btn, .admin-btn, .drag-hint,
+            .carousel-controls, .cookie-banner {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cookie-banner" id="cookieBanner">
+        <span class="cookie-text">
+            Мы используем <strong>только локальные данные</strong> (localStorage) для сохранения ваших настроек и лимитов. 
+            <a href="#" onclick="showPrivacyPopup(); return false;">Подробнее о конфиденциальности</a>
+        </span>
+        <button class="cookie-btn" onclick="acceptCookies()">Понятно</button>
+    </div>
+
+    <nav class="nav">
+        <a href="/" class="logo" style="text-decoration:none;">Midern Dev</a>
+        <div class="nav-links">
+            <a href="./index.html" class="nav-link active">Главная</a>
+            <a href="./catalog/index.html" class="nav-link">Каталог</a>
+            <a href="./compare/index.html" class="nav-link">Сравнение</a>
+            <a href="./learn/index.html" class="nav-link">Обучение</a>
+            <a href="./blog/index.html" class="nav-link">Блог</a>
+        </div>
+        <div class="nav-right">
+            <button class="hamburger" onclick="toggleMobileMenu()" id="hamburgerBtn">☰</button>
+            <button class="nav-btn help-btn" onclick="showHelpPopup()">❤️ Помочь</button>
+            <button class="premium-badge" id="premiumBadge" onclick="showPremiumPopup()">⭐ PREMIUM</button>
+            <div class="theme-toggle" onclick="toggleTheme()"></div>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="./index.html" class="nav-link active">Главная</a>
+        <a href="./catalog/index.html" class="nav-link">Каталог</a>
+        <a href="./compare/index.html" class="nav-link">Сравнение</a>
+        <a href="./learn/index.html" class="nav-link">Обучение</a>
+        <a href="./blog/index.html" class="nav-link">Блог</a>
+    </div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Midern Dev</h1>
+            <p>Навигатор в мире нейросетей</p>
+        </div>
+
+        <div class="carousel-container" id="carouselContainer">
+            <div class="carousel" id="carousel"></div>
+        </div>
+
+        <div class="carousel-controls">
+            <button class="control-btn" onclick="rotateCarousel(-1)">←</button>
+            <button class="control-btn" onclick="rotateCarousel(1)">→</button>
+        </div>
+    </section>
+
+    <button class="admin-btn" onclick="showAdminPanel()" title="Админ панель">⚙️</button>
+
+    <div class="drag-hint" id="dragHint">Перетащи меня</div>
+    <div class="midern-btn" id="midernBtn" onclick="toggleModal(event)">
+        <span>M</span>
+    </div>
+
+    <div class="midern-modal" id="midernModal">
+        <div class="modal-header">
+            <h3>Midern AI <span class="badge">BETA</span></h3>
+            <button class="close-modal" onclick="closeModal(event)">×</button>
+        </div>
+        <div class="modal-content">
+            <div class="limit-info" id="limitInfo">
+                <span class="limit-text">Осталось генераций: <strong id="requestsLeft">10</strong></span>
+                <span class="limit-count" id="limitCount">10</span>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        Привет! Я Midern AI. Введите ваш запрос, и я оптимизирую его для выбранной нейросети.
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Введите запрос..." onkeypress="handleEnter(event)">
+                    <button class="chat-send" id="sendBtn" onclick="sendMessage()">
+                        <span id="sendIcon">➤</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="upgrade-banner" id="upgradeBanner">
+                <h4>⭐ Хотите больше?</h4>
+                <p>Получите 50 генераций с премиум-подпиской</p>
+                <button class="upgrade-btn" onclick="showPremiumPopup()">Получить PREMIUM</button>
+            </div>
+
+            <div class="promo-section" id="promoSection">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px;">🎁 Есть промокод?</div>
+                <div class="promo-input-container">
+                    <input type="text" class="promo-input" id="promoInput" placeholder="Введите код..." maxlength="14">
+                    <button class="promo-btn" onclick="activatePromoCode()">Активировать</button>
+                </div>
+                <div class="promo-status" id="promoStatus"></div>
+            </div>
+
+            <div style="text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border)">
+                <a href="#" onclick="event.preventDefault();showSupportPopup();" style="color:var(--text-secondary);font-size:11px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px">📧 Нужна помощь?</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="premiumPopup" onclick="closePopup(event)">
+        <div class="popup-modal" onclick="event.stopPropagation()">
+            <button class="popup-close" onclick="closePopup()">×</button>
+            <div class="popup-icon">⭐</div>
+            <h3>Получить PREMIUM</h3>
+            <p>Для активации премиум-доступа (50 генераций):</p>
+            <div style="text-align: left; margin: 15px 0; font-size: 13px; color: var(--text-secondary);">
+                <div style="margin-bottom: 8px;">1. Напишите нам на почту</div>
+                <div style="margin-bottom: 8px;">2. Получите промокод</div>
+                <div>3. Активируйте в чате Midern AI</div>
+            </div>
+            <div class="popup-email">alekseyk2607@gmail.com</div>
+            <button class="popup-btn" onclick="copyEmail()">Скопировать email</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="supportPopup" onclick="closeSupportPopup(event)">
+        <div class="popup-modal" onclick="event.stopPropagation()">
+            <button class="popup-close" onclick="closeSupportPopup()">×</button>
+            <div class="popup-icon" style="background: linear-gradient(135deg, var(--accent), #5856d6);">📧</div>
+            <h3>Техническая поддержка</h3>
+            <p>Если у вас возникли вопросы или проблемы, напишите нам:</p>
+            <div class="popup-email">alekseyk2607@gmail.com</div>
+            <button class="popup-btn" onclick="copySupportEmail()">Скопировать email</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="helpPopup" onclick="closeHelpPopup(event)">
+        <div class="popup-modal" onclick="event.stopPropagation()">
+            <button class="popup-close" onclick="closeHelpPopup()">×</button>
+            <div class="popup-icon" style="background: linear-gradient(135deg, #ef4444, #f97316);">❤️</div>
+            <h3>Помочь проекту</h3>
+            <p>Если вам нравится Midern Dev, вы можете поддержать развитие:</p>
+            <div style="text-align: left; margin: 15px 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📢</span>
+                    <span>Расскажите друзьям о сайте</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">💡</span>
+                    <span>Пришлите идеи по улучшению</span>
+                </div>
+                <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">☕</span>
+                    <span>Поддержите финансово</span>
+                </div>
+            </div>
+            <div class="popup-email">alekseyk2607@gmail.com</div>
+            <button class="popup-btn" onclick="copyHelpEmail()">Скопировать email</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="privacyPopup" onclick="closePrivacyPopup(event)">
+        <div class="popup-modal" onclick="event.stopPropagation()" style="max-width: 500px;">
+            <button class="popup-close" onclick="closePrivacyPopup()">×</button>
+            <div class="popup-icon" style="background: linear-gradient(135deg, #34c759, #30d158);">🔒</div>
+            <h3>Политика конфиденциальности</h3>
+            
+            <div class="privacy-content">
+                <h4>🔐 Какие данные мы собираем?</h4>
+                <p>Мы используем <span class="highlight">только локальное хранилище браузера</span> (localStorage). Никакие данные не отправляются на сервер без вашего ведома.</p>
+                
+                <h4>📊 Что хранится в localStorage?</h4>
+                <ul>
+                    <li><strong>Настройки темы</strong> — светлая/тёмная тема оформления</li>
+                    <li><strong>Количество генераций</strong> — сколько запросов осталось</li>
+                    <li><strong>Статус Premium</strong> — активирован ли у вас премиум-доступ</li>
+                    <li><strong>Идентификатор устройства</strong> — для защиты от накрутки промокодов</li>
+                    <li><strong>История промокодов</strong> — только если вы администратор</li>
+                </ul>
+
+                <h4>🛡️ Защита от мошенничества</h4>
+                <p>Мы используем <span class="highlight">браузерный fingerprinting</span> — технологию создания уникального отпечатка браузера на основе:</p>
+                <ul>
+                    <li>Разрешения экрана и глубины цвета</li>
+                    <li>Установленных шрифтов</li>
+                    <li>Canvas и WebGL отпечатков</li>
+                    <li>User-Agent и языковых настроек</li>
+                    <li>Часового пояса</li>
+                </ul>
+                <p>Это позволяет предотвратить множественную активацию промокодов без регистрации на сервере.</p>
+
+                <h4>🚫 Что мы НЕ делаем?</h4>
+                <ul>
+                    <li>❌ Не используем cookies для отслеживания</li>
+                    <li>❌ Не собираем персональные данные (имя, email, телефон)</li>
+                    <li>❌ Не продаём данные третьим лицам</li>
+                    <li>❌ Не используем рекламные трекеры</li>
+                    <li>❌ Не отправляем данные на сторонние серверы</li>
+                </ul>
+
+                <h4>🗑️ Как удалить данные?</h4>
+                <p>Вы можете очистить все данные в любой момент:</p>
+                <ol>
+                    <li>Откройте настройки браузера</li>
+                    <li>Найдите "Очистить данные сайтов"</li>
+                    <li>Выберите midern.ru (или ваш домен)</li>
+                    <li>Нажмите "Удалить"</li>
+                </ol>
+
+                <h4>📧 Контакты</h4>
+                <p>По всем вопросам: <strong>alekseyk2607@gmail.com</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <button class="popup-close" onclick="closeAdminPanel()">×</button>
+        <h3>🔐 Админ панель</h3>
+        
+        <div class="admin-section">
+            <h4>Генерация промокодов</h4>
+            <input type="number" class="admin-input" id="codeCount" placeholder="Количество кодов" min="1" max="100" value="5">
+            <div class="admin-actions">
+                <button class="admin-btn-action admin-btn-primary" onclick="generatePromoCodes()">Сгенерировать</button>
+                <button class="admin-btn-action admin-btn-secondary" onclick="copyAllCodes()">Копировать все</button>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h4>Управление промокодами</h4>
+            <div class="code-list" id="codeList"></div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                Всего: <span id="totalCodes">0</span> | 
+                Активных: <span id="activeCodes">0</span> | 
+                Использованных: <span id="usedCodes">0</span>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h4>Опасная зона</h4>
+            <button class="admin-btn-action admin-btn-danger" onclick="resetAllData()" style="width: 100%;">
+                🗑️ Сбросить все данные
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            API_KEY: 'sk-hRB0CovgBStu6ah3b_lXjQ',
+            API_URL: 'https://litellm.tokengate.ru/v1/chat/completions',
+            MODEL: 'openai/gpt-4o-mini',
+            FREE_GENERATIONS: 10,
+            PREMIUM_GENERATIONS: 50,
+            FREE_TOKENS_PER_GEN: 350,
+            PREMIUM_TOKENS_PER_GEN: 900,
+            SUPPORT_EMAIL: 'alekseyk2607@gmail.com',
+            ADMIN_PASSWORD: 'NokiaG20'
+        };
+
+        const Fingerprint = {
+            async getFingerprint() {
+                const components = [];
+                
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 200;
+                    canvas.height = 50;
+                    
+                    ctx.textBaseline = 'top';
+                    ctx.font = '14px Arial';
+                    ctx.fillStyle = '#f60';
+                    ctx.fillRect(0, 0, 200, 50);
+                    ctx.fillStyle = '#069';
+                    ctx.fillText('Midern FP v2.1 🎯', 10, 15);
+                    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+                    ctx.fillText('Browser ID', 10, 30);
+                    
+                    components.push('canvas:' + canvas.toDataURL().slice(-50));
+                } catch(e) {
+                    components.push('canvas:error');
+                }
+
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                    if (gl) {
+                        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                        if (debugInfo) {
+                            components.push('webgl_vendor:' + gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+                            components.push('webgl_renderer:' + gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+                        }
+                    }
+                } catch(e) {
+                    components.push('webgl:error');
+                }
+
+                components.push('screen:' + screen.width + 'x' + screen.height + 'x' + screen.colorDepth);
+                components.push('avail:' + screen.availWidth + 'x' + screen.availHeight);
+                components.push('devicePixelRatio:' + window.devicePixelRatio);
+                components.push('orientation:' + screen.orientation?.type);
+
+                components.push('ua:' + navigator.userAgent);
+                components.push('platform:' + navigator.platform);
+                components.push('language:' + navigator.language);
+                components.push('languages:' + navigator.languages?.join(','));
+                components.push('timezone:' + Intl.DateTimeFormat().resolvedOptions().timeZone);
+                components.push('timezone_offset:' + new Date().getTimezoneOffset());
+
+                components.push('cores:' + navigator.hardwareConcurrency);
+                components.push('memory:' + navigator.deviceMemory);
+                components.push('touch:' + navigator.maxTouchPoints);
+
+                const fontList = ['Arial', 'Times New Roman', 'Helvetica', 'Georgia', 'Verdana'];
+                const availableFonts = [];
+                const testString = 'mmmmmmmmmmlli';
+                const testSize = '72px';
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const baseline = ctx.measureText(testString).width;
+                
+                fontList.forEach(font => {
+                    ctx.font = testSize + ' ' + font;
+                    if (ctx.measureText(testString).width !== baseline) {
+                        availableFonts.push(font);
+                    }
+                });
+                components.push('fonts:' + availableFonts.join(','));
+
+                const plugins = [];
+                if (navigator.plugins) {
+                    for (let i = 0; i < navigator.plugins.length; i++) {
+                        plugins.push(navigator.plugins[i].name);
+                    }
+                }
+                components.push('plugins:' + plugins.join(','));
+
+                const fingerprint = await this.hashString(components.join('|||'));
+                return fingerprint;
+            },
+
+            async hashString(str) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+            },
+
+            async verifyIntegrity() {
+                const storedFp = localStorage.getItem('midern_fingerprint');
+                const currentFp = await this.getFingerprint();
+                
+                if (!storedFp) {
+                    localStorage.setItem('midern_fingerprint', currentFp);
+                    return true;
+                }
+                
+                let diff = 0;
+                for (let i = 0; i < Math.min(storedFp.length, currentFp.length); i++) {
+                    if (storedFp[i] !== currentFp[i]) diff++;
+                }
+                
+                if (diff > 5) {
+                    console.warn('Fingerprint mismatch detected');
+                    if (localStorage.getItem('midern_premium') === 'true') {
+                        localStorage.removeItem('midern_premium');
+                        localStorage.removeItem('midern_premium_activated');
+                        localStorage.removeItem('midern_generations_used');
+                        localStorage.removeItem('midern_activated_promo');
+                        alert('Обнаружена подозрительная активность. Премиум статус сброшен.');
+                        location.reload();
+                    }
+                    return false;
+                }
+                
+                return true;
+            }
+        };
+
+        const PromoCodeSystem = {
+            generateCode() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let code = '';
+                for (let i = 0; i < 12; i++) {
+                    if (i > 0 && i % 4 === 0) code += '-';
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            },
+
+            getCodes() {
+                const codes = localStorage.getItem('midern_promo_codes');
+                return codes ? JSON.parse(codes) : [];
+            },
+
+            saveCodes(codes) {
+                localStorage.setItem('midern_promo_codes', JSON.stringify(codes));
+            },
+
+            generate(count = 5) {
+                const codes = this.getCodes();
+                const newCodes = [];
+                
+                for (let i = 0; i < count; i++) {
+                    const code = this.generateCode();
+                    newCodes.push({
+                        code: code,
+                        created: new Date().toISOString(),
+                        used: false,
+                        usedBy: null,
+                        usedAt: null
+                    });
+                }
+                
+                codes.push(...newCodes);
+                this.saveCodes(codes);
+                return newCodes;
+            },
+
+            async activate(code) {
+                const cleanCode = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                const formattedCode = cleanCode.match(/.{1,4}/g)?.join('-') || cleanCode;
+                
+                const fp = await Fingerprint.getFingerprint();
+                
+                const activatedPromo = localStorage.getItem('midern_activated_promo');
+                if (activatedPromo) {
+                    return { success: false, error: 'Вы уже активировали промокод ранее' };
+                }
+                
+                const codes = this.getCodes();
+                const codeObj = codes.find(c => c.code === formattedCode);
+                
+                if (!codeObj) {
+                    return { success: false, error: 'Промокод не найден' };
+                }
+                
+                if (codeObj.used) {
+                    return { success: false, error: 'Промокод уже использован' };
+                }
+                
+                codeObj.used = true;
+                codeObj.usedBy = fp;
+                codeObj.usedAt = new Date().toISOString();
+                this.saveCodes(codes);
+                
+                localStorage.setItem('midern_activated_promo', formattedCode);
+                localStorage.setItem('midern_premium', 'true');
+                localStorage.setItem('midern_premium_activated', new Date().toISOString());
+                
+                return { success: true };
+            },
+
+            deleteCode(codeToDelete) {
+                let codes = this.getCodes();
+                const codeObj = codes.find(c => c.code === codeToDelete);
+                
+                if (codeObj && codeObj.used) {
+                    const activatedPromo = localStorage.getItem('midern_activated_promo');
+                    const wasMyPromo = activatedPromo === codeToDelete;
+                    
+                    if (wasMyPromo) {
+                        localStorage.removeItem('midern_premium');
+                        localStorage.removeItem('midern_premium_activated');
+                        localStorage.removeItem('midern_generations_used');
+                        localStorage.removeItem('midern_activated_promo');
+                        
+                        state.isPremium = false;
+                        state.generationsUsed = 0;
+                    }
+                }
+                
+                codes = codes.filter(c => c.code !== codeToDelete);
+                this.saveCodes(codes);
+                return true;
+            },
+
+            getStats() {
+                const codes = this.getCodes();
+                return {
+                    total: codes.length,
+                    active: codes.filter(c => !c.used).length,
+                    used: codes.filter(c => c.used).length
+                };
+            },
+
+            clear() {
+                localStorage.removeItem('midern_promo_codes');
+                localStorage.removeItem('midern_activated_promo');
+            }
+        };
+
+        const networks = [
+            {
+                name: "ChatGPT",
+                category: "Текст",
+                description: "Универсальный ИИ-ассистент от OpenAI для диалогов, кода и анализа",
+                instruction: "Задавай чёткие вопросы, используй уточнения. Для кода указывай язык и версию.",
+                website: "https://chat.openai.com",
+                color: "#10a37f"
+            },
+            {
+                name: "Gemini",
+                category: "Мультимодал",
+                description: "Google-ассистент с интеграцией в экосистему и огромным контекстом",
+                instruction: "Используй нативные интеграции (Docs, Gmail). Пробуй мультимодальные запросы.",
+                website: "https://gemini.google.com",
+                color: "#4285f4"
+            },
+            {
+                name: "Grok",
+                category: "Текст",
+                description: "ИИ от xAI с доступом к данным X (Twitter) в реальном времени",
+                instruction: "Задавай вопросы о трендах и новостях. Использует актуальные данные из X.",
+                website: "https://grok.x.ai",
+                color: "#1d9bf0"
+            },
+            {
+                name: "Claude",
+                category: "Текст",
+                description: "ИИ-ассистент от Anthropic с большим контекстом и безопасностью",
+                instruction: "Отлично подходит для длинных документов, анализа и творческих задач.",
+                website: "https://claude.ai",
+                color: "#d97757"
+            },
+            {
+                name: "Kimi",
+                category: "Текст",
+                description: "Китайский ассистент с контекстом 200K+ токенов от Moonshot AI",
+                instruction: "Загружай целые документы для анализа. Идеален для длинных текстов.",
+                website: "https://kimi.moonshot.cn",
+                color: "#00b4d8"
+            },
+            {
+                name: "DeepSeek",
+                category: "Текст / Код",
+                description: "Открытая модель с сильными навыками программирования",
+                instruction: "Идеален для сложных кодовых задач и математических доказательств.",
+                website: "https://www.deepseek.com",
+                color: "#4f46e5"
+            },
+            {
+                name: "Qwen",
+                category: "Текст / Код",
+                description: "Alibaba-ассистент, мультиязычный, сильный в коде",
+                instruction: "Пробуй мультиязычные запросы. Хорош для бизнес-аналитики.",
+                website: "https://qwenlm.github.io",
+                color: "#7c3aed"
+            },
+            {
+                name: "GigaChat",
+                category: "Текст",
+                description: "Российский ассистент Сбера с интеграцией в локальные сервисы",
+                instruction: "Используй для работы с российскими документами и рутинными задачами.",
+                website: "https://giga.chat",
+                color: "#1a73e8"
+            },
+            {
+                name: "Midjourney",
+                category: "Изображения",
+                description: "Лучший генератор художественных изображений по тексту",
+                instruction: "Используй художественные термины, стили, художников для референса.",
+                website: "https://www.midjourney.com",
+                color: "#1a1a1a"
+            },
+            {
+                name: "Stable Diffusion",
+                category: "Изображения",
+                description: "Открытая модель для генерации изображений с полным контролем",
+                instruction: "Используй промпты с тегами, негативные промпты, настраивай параметры.",
+                website: "https://stability.ai",
+                color: "#fbbf24"
+            },
+            {
+                name: "Sora",
+                category: "Видео",
+                description: "OpenAI-модель для генерации видео из текста",
+                instruction: "Опиши сцену детально: движение, освещение, стиль, длительность.",
+                website: "https://openai.com/sora",
+                color: "#10a37f"
+            },
+            {
+                name: "Runway",
+                category: "Видео",
+                description: "Платформа для генерации и редактирования видео с ИИ",
+                instruction: "Используй для генерации видео, удаления фона, замены объектов.",
+                website: "https://runwayml.com",
+                color: "#000000"
+            },
+            {
+                name: "Suno",
+                category: "Музыка",
+                description: "Генератор музыки и песен с вокалом из текста",
+                instruction: "Укажи жанр, темп (BPM), настроение, структуру песни.",
+                website: "https://suno.ai",
+                color: "#ec4899"
+            },
+            {
+                name: "ElevenLabs",
+                category: "Аудио",
+                description: "Генератор реалистичных голосов и озвучки",
+                instruction: "Выбери голос, настрой стабильность и ясность. Используй для озвучки.",
+                website: "https://elevenlabs.io",
+                color: "#6366f1"
+            },
+            {
+                name: "Perplexity",
+                category: "Поиск",
+                description: "ИИ-поисковик с доступом к интернету и источниками",
+                instruction: "Задавай вопросы как в Google, но получай структурированные ответы.",
+                website: "https://www.perplexity.ai",
+                color: "#22d3ee"
+            }
+        ];
+
+        let state = {
+            isPremium: localStorage.getItem('midern_premium') === 'true',
+            generationsUsed: parseInt(localStorage.getItem('midern_generations_used')) || 0,
+            currentRotation: 0,
+            isDragging: false,
+            isDraggingBtn: false
+        };
+
+        const carousel = document.getElementById('carousel');
+        const cardCount = networks.length;
+        const angleStep = 360 / cardCount;
+        let wrappers = [];
+
+        function initCarousel() {
+            networks.forEach((network, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-wrapper';
+                wrapper.dataset.index = index;
+                
+                const inner = document.createElement('div');
+                inner.className = 'card-inner';
+                
+                const logoHTML = `<span class="card-logo-text" style="color: ${network.color}; font-size: 32px; font-weight: 700;">${network.name.charAt(0)}</span>`;
+                
+                inner.innerHTML = `
+                    <div class="card-face card-front">
+                        <div class="card-logo" style="background: linear-gradient(135deg, ${network.color}20, ${network.color}40); border: 2px solid ${network.color}60;">
+                            ${logoHTML}
+                        </div>
+                        <span class="card-category">${network.category}</span>
+                        <h3>${network.name}</h3>
+                        <p class="card-description">${network.description}</p>
+                        <span class="flip-hint">Нажмите для подробностей ↻</span>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-instruction">
+                            <h4>Как использовать ${network.name}</h4>
+                            <p>${network.instruction}</p>
+                        </div>
+                        <a href="${network.website}" target="_blank" class="card-link" onclick="event.stopPropagation();">
+                            Перейти на сайт →
+                        </a>
+                        <span class="flip-hint">Нажмите чтобы вернуться ↻</span>
+                    </div>
+                `;
+                
+                wrapper.appendChild(inner);
+                wrapper.onclick = function(e) {
+                    if (!state.isDragging && !e.target.closest('.card-link')) {
+                        this.classList.toggle('flipped');
+                    }
+                };
+                
+                carousel.appendChild(wrapper);
+                wrappers.push(wrapper);
+            });
+            
+            positionCards(0);
+        }
+
+        function positionCards(rotation) {
+            const isMobile = window.innerWidth < 768;
+            const currentRadius = isMobile ? 240 : 360;
+            
+            wrappers.forEach((wrapper, index) => {
+                const angle = (index * angleStep + rotation) * Math.PI / 180;
+                const x = Math.sin(angle) * currentRadius;
+                const z = Math.cos(angle) * currentRadius;
+                const rotateY = -index * angleStep - rotation;
+                
+                const normalizedAngle = ((index * angleStep + rotation) % 360 + 360) % 360;
+                const distanceFromFront = Math.min(normalizedAngle, 360 - normalizedAngle);
+                
+                let scale = 1, opacity = 1, blur = 0, zIndex = 50;
+                
+                if (distanceFromFront < 30) {
+                    scale = 1; opacity = 1; blur = 0; zIndex = 100;
+                } else if (distanceFromFront < 90) {
+                    scale = 0.85; opacity = 0.7; blur = 1; zIndex = 75;
+                } else if (distanceFromFront < 150) {
+                    scale = 0.7; opacity = 0.4; blur = 2; zIndex = 50;
+                } else {
+                    scale = 0.6; opacity = 0.2; blur = 3; zIndex = 25;
+                }
+                
+                if (distanceFromFront > 180) {
+                    opacity = 0; zIndex = 0;
+                }
+                
+                wrapper.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${rotateY}deg) scale(${scale})`;
+                wrapper.style.opacity = opacity;
+                wrapper.style.filter = blur > 0 ? `blur(${blur}px)` : 'none';
+                wrapper.style.zIndex = zIndex;
+            });
+        }
+
+        function rotateCarousel(direction) {
+            wrappers.forEach(w => w.classList.remove('flipped'));
+            state.currentRotation += direction * angleStep;
+            positionCards(state.currentRotation);
+        }
+
+        const container = document.getElementById('carouselContainer');
+        let startX = 0, currentX = 0;
+
+        container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.card-wrapper')) return;
+            state.isDragging = true;
+            startX = e.clientX;
+            container.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!state.isDragging) return;
+            currentX = e.clientX - startX;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!state.isDragging) return;
+            state.isDragging = false;
+            container.style.cursor = 'grab';
+            if (Math.abs(currentX) > 50) {
+                rotateCarousel(currentX > 0 ? -1 : 1);
+            }
+            currentX = 0;
+        });
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.card-wrapper')) return;
+            startX = e.touches[0].clientX;
+        }, {passive: true});
+
+        container.addEventListener('touchmove', (e) => {
+            const diff = startX - e.touches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                rotateCarousel(diff > 0 ? 1 : -1);
+                startX = e.touches[0].clientX;
+            }
+        }, {passive: true});
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('midern_theme', newTheme);
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('open');
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('midern_theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        function acceptCookies() {
+            localStorage.setItem('midern_cookies_accepted', 'true');
+            document.getElementById('cookieBanner').classList.remove('show');
+        }
+
+        function checkCookies() {
+            if (!localStorage.getItem('midern_cookies_accepted')) {
+                setTimeout(() => {
+                    document.getElementById('cookieBanner').classList.add('show');
+                }, 1000);
+            }
+        }
+
+        const midernBtn = document.getElementById('midernBtn');
+        const dragHint = document.getElementById('dragHint');
+        let btnOffsetX = 0, btnOffsetY = 0;
+
+        setTimeout(() => dragHint.classList.add('show'), 1000);
+        setTimeout(() => dragHint.classList.remove('show'), 4000);
+
+        midernBtn.addEventListener('mousedown', startDrag);
+        midernBtn.addEventListener('touchstart', startDrag, {passive: false});
+
+        function startDrag(e) {
+            if (e.target.closest('.midern-modal')) return;
+            state.isDraggingBtn = true;
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const rect = midernBtn.getBoundingClientRect();
+            btnOffsetX = clientX - rect.left;
+            btnOffsetY = clientY - rect.top;
+            midernBtn.style.transition = 'none';
+            dragHint.classList.remove('show');
+            e.preventDefault();
+        }
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function drag(e) {
+            if (!state.isDraggingBtn) return;
+            e.preventDefault();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const x = clientX - btnOffsetX;
+            const y = clientY - btnOffsetY;
+            const maxX = window.innerWidth - 56;
+            const maxY = window.innerHeight - 56;
+            
+            midernBtn.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+            midernBtn.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            midernBtn.style.bottom = 'auto';
+            midernBtn.style.right = 'auto';
+        }
+
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function endDrag() {
+            if (!state.isDraggingBtn) return;
+            state.isDraggingBtn = false;
+            midernBtn.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+        }
+
+        const modal = document.getElementById('midernModal');
+
+        function toggleModal(e) {
+            if (state.isDraggingBtn) return;
+            modal.classList.toggle('active');
+            if (modal.classList.contains('active')) {
+                updateLimitDisplay();
+                document.getElementById('chatInput').focus();
+            }
+        }
+
+        function closeModal(e) {
+            e.stopPropagation();
+            modal.classList.remove('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!midernBtn.contains(e.target) && !modal.contains(e.target)) {
+                modal.classList.remove('active');
+            }
+        });
+
+        function showPremiumPopup() {
+            document.getElementById('premiumPopup').classList.add('active');
+        }
+
+        function closePopup(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('premiumPopup').classList.remove('active');
+        }
+
+        function showSupportPopup() {
+            document.getElementById('supportPopup').classList.add('active');
+        }
+
+        function closeSupportPopup(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('supportPopup').classList.remove('active');
+        }
+
+        function showHelpPopup() {
+            document.getElementById('helpPopup').classList.add('active');
+        }
+
+        function closeHelpPopup(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('helpPopup').classList.remove('active');
+        }
+
+        function showPrivacyPopup() {
+            document.getElementById('privacyPopup').classList.add('active');
+        }
+
+        function closePrivacyPopup(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('privacyPopup').classList.remove('active');
+        }
+
+        function copyEmail() {
+            navigator.clipboard.writeText(CONFIG.SUPPORT_EMAIL).then(() => {
+                showToast('Email скопирован!');
+            });
+        }
+
+        function copySupportEmail() {
+            navigator.clipboard.writeText(CONFIG.SUPPORT_EMAIL).then(() => {
+                showToast('Email скопирован!');
+            });
+        }
+
+        function copyHelpEmail() {
+            navigator.clipboard.writeText(CONFIG.SUPPORT_EMAIL).then(() => {
+                showToast('Email скопирован!');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--accent);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 9999;
+                animation: fadeIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        async function activatePromoCode() {
+            const input = document.getElementById('promoInput');
+            const status = document.getElementById('promoStatus');
+            const code = input.value.trim();
+            
+            if (!code) {
+                status.textContent = 'Введите промокод';
+                status.className = 'promo-status error';
+                return;
+            }
+            
+            const result = await PromoCodeSystem.activate(code);
+            
+            if (result.success) {
+                status.textContent = '✅ Премиум активирован! Теперь у вас 50 генераций.';
+                status.className = 'promo-status success';
+                input.value = '';
+                state.isPremium = true;
+                updateLimitDisplay();
+                document.getElementById('premiumBadge').classList.add('active');
+                setTimeout(() => {
+                    document.getElementById('upgradeBanner').style.display = 'none';
+                }, 1000);
+            } else {
+                status.textContent = '❌ ' + result.error;
+                status.className = 'promo-status error';
+            }
+        }
+
+        function updateLimitDisplay() {
+            const maxGenerations = state.isPremium ? CONFIG.PREMIUM_GENERATIONS : CONFIG.FREE_GENERATIONS;
+            const remaining = Math.max(0, maxGenerations - state.generationsUsed);
+            
+            document.getElementById('requestsLeft').textContent = remaining;
+            document.getElementById('limitCount').textContent = remaining;
+            
+            const limitInfo = document.getElementById('limitInfo');
+            const upgradeBanner = document.getElementById('upgradeBanner');
+            const premiumBadge = document.getElementById('premiumBadge');
+            
+            if (state.isPremium) {
+                limitInfo.classList.add('premium');
+                upgradeBanner.style.display = 'none';
+                premiumBadge.classList.add('active');
+            } else {
+                limitInfo.classList.remove('premium');
+                upgradeBanner.style.display = 'block';
+                premiumBadge.classList.remove('active');
+            }
+            
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            if (remaining <= 0) {
+                input.disabled = true;
+                input.placeholder = 'Лимит генераций исчерпан';
+                sendBtn.disabled = true;
+            } else {
+                input.disabled = false;
+                input.placeholder = 'Введите запрос...';
+                sendBtn.disabled = false;
+            }
+        }
+
+        function addMessage(role, text) {
+            const container = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = 'message ' + role;
+            msg.textContent = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('sendBtn');
+            const icon = document.getElementById('sendIcon');
+            const input = document.getElementById('chatInput');
+            
+            if (loading) {
+                btn.disabled = true;
+                input.disabled = true;
+                icon.innerHTML = '<div class="spinner"></div>';
+            } else {
+                btn.disabled = false;
+                input.disabled = false;
+                icon.textContent = '➤';
+                input.focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            if (CONFIG.API_KEY === 'ВАШ_API_КЛЮЧ_АГЕНТ_ПЛАТФОРМ' || !CONFIG.API_KEY) {
+                addMessage('error', '⚠️ API ключ не настроен. Обратитесь к администратору.');
+                return;
+            }
+            
+            const maxGenerations = state.isPremium ? CONFIG.PREMIUM_GENERATIONS : CONFIG.FREE_GENERATIONS;
+            if (state.generationsUsed >= maxGenerations) {
+                addMessage('error', 'Лимит генераций исчерпан. Получите PREMIUM для 50 генераций.');
+                return;
+            }
+            
+            addMessage('user', text);
+            input.value = '';
+            setLoading(true);
+            
+            const maxTokens = state.isPremium ? CONFIG.PREMIUM_TOKENS_PER_GEN : CONFIG.FREE_TOKENS_PER_GEN;
+            
+            try {
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + CONFIG.API_KEY
+                    },
+                    body: JSON.stringify({
+                        model: CONFIG.MODEL,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Ты — Midern AI, генератор промптов. Превращай простые запросы в профессиональные промпты. Отвечай кратко. Отвечай на русском.'
+                            },
+                            { role: 'user', content: text }
+                        ],
+                        max_tokens: maxTokens
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'Ошибка API');
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                state.generationsUsed++;
+                localStorage.setItem('midern_generations_used', state.generationsUsed);
+                
+                addMessage('assistant', content);
+                updateLimitDisplay();
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                addMessage('error', '❌ Ошибка: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+
+        let adminAuthenticated = false;
+
+        function showAdminPanel() {
+            if (!adminAuthenticated) {
+                const password = prompt('Введите пароль администратора:');
+                if (password !== CONFIG.ADMIN_PASSWORD) {
+                    alert('Неверный пароль');
+                    return;
+                }
+                adminAuthenticated = true;
+            }
+            document.getElementById('adminPanel').classList.add('active');
+            updateCodeList();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('active');
+        }
+
+        function generatePromoCodes() {
+            const count = parseInt(document.getElementById('codeCount').value) || 5;
+            const newCodes = PromoCodeSystem.generate(count);
+            updateCodeList();
+            showToast('Сгенерировано ' + newCodes.length + ' промокодов!');
+            copyAllCodes();
+        }
+
+        function updateCodeList() {
+            const codes = PromoCodeSystem.getCodes();
+            const listEl = document.getElementById('codeList');
+            const stats = PromoCodeSystem.getStats();
+            
+            document.getElementById('totalCodes').textContent = stats.total;
+            document.getElementById('activeCodes').textContent = stats.active;
+            document.getElementById('usedCodes').textContent = stats.used;
+            
+            if (codes.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:20px">Нет промокодов</div>';
+                return;
+            }
+            
+            listEl.innerHTML = codes.slice().reverse().map(c => {
+                return `
+                    <div class="code-item">
+                        <span class="code-text">${c.code}</span>
+                        <div class="code-actions">
+                            ${!c.used ? `<button class="code-btn copy" onclick="copySingleCode('${c.code}')">Копировать</button>` : ''}
+                            <button class="code-btn delete" onclick="deleteSingleCode('${c.code}')">Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function copySingleCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Промокод скопирован!');
+            });
+        }
+
+        function deleteSingleCode(code) {
+            if (!confirm('Удалить промокод ' + code + '?')) return;
+            
+            const activatedPromo = localStorage.getItem('midern_activated_promo');
+            const wasMyPromo = activatedPromo === code;
+            
+            PromoCodeSystem.deleteCode(code);
+            updateCodeList();
+            
+            if (wasMyPromo) {
+                showToast('Промокод удалён. Ваш премиум сброшен.');
+                updateLimitDisplay();
+            } else {
+                showToast('Промокод удалён');
+            }
+        }
+
+        function copyAllCodes() {
+            const codes = PromoCodeSystem.getCodes().filter(c => !c.used);
+            if (codes.length === 0) {
+                alert('Нет активных промокодов');
+                return;
+            }
+            const codeText = codes.map(c => c.code).join('\n');
+            navigator.clipboard.writeText(codeText).then(() => {
+                showToast('Скопировано ' + codes.length + ' промокодов!');
+            });
+        }
+
+        function resetAllData() {
+            if (!confirm('ВНИМАНИЕ! Это удалит ВСЕ данные: промокоды, статус премиума, историю генераций. Продолжить?')) return;
+            
+            PromoCodeSystem.clear();
+            localStorage.removeItem('midern_premium');
+            localStorage.removeItem('midern_premium_activated');
+            localStorage.removeItem('midern_generations_used');
+            localStorage.removeItem('midern_fingerprint');
+            localStorage.removeItem('midern_activated_promо');
+            
+            showToast('Все данные сброшены!');
+            updateCodeList();
+            state.isPremium = false;
+            state.generationsUsed = 0;
+            updateLimitDisplay();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') rotateCarousel(-1);
+            if (e.key === 'ArrowRight') rotateCarousel(1);
+            if (e.key === 'Escape') {
+                modal.classList.remove('active');
+                closePopup();
+                closeSupportPopup();
+                closePrivacyPopup();
+                closeHelpPopup();
+                closeAdminPanel();
+            }
+        });
+
+        let idleTimer;
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                if (!modal.classList.contains('active')) rotateCarousel(1);
+            }, 8000);
+        }
+
+        document.addEventListener('mousemove', resetIdleTimer);
+        document.addEventListener('click', resetIdleTimer);
+        document.addEventListener('keydown', resetIdleTimer);
+
+        window.addEventListener('resize', () => {
+            positionCards(state.currentRotation);
+        });
+
+        async function init() {
+            loadTheme();
+            initCarousel();
+            checkCookies();
+            updateLimitDisplay();
+            resetIdleTimer();
+            
+            await Fingerprint.verifyIntegrity();
+        }
+
+        init();
+    </script>
+</body>
+</html>
